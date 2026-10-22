@@ -1,0 +1,237 @@
+```{r}
+# Carregando os pacotes necessarios
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(lmtest)
+library(tseries)
+
+#As saidas dos testes eu coloquei aqui
+pasta_saida = "resultados"
+dir.create(pasta_saida, showWarnings = FALSE)
+
+#Os dados do github do Gabriel
+pedidos = read_csv("pedidos.csv", show_col_types = FALSE)
+produtos = read_csv("produtos.csv", show_col_types = FALSE)
+# Separei para ficar uma linha por item vendido e coloquei a categoria de cada produto
+vendas = pedidos %>%
+  mutate(data = as.Date(data_do_pedido)) %>%
+  separate_rows(ids_dos_produtos, sep = ";") %>%
+  left_join(select(produtos, id, categoria), by = c("ids_dos_produtos" = "id")) %>%
+  filter(!is.na(categoria))
+
+# Usei só de jan/2017 a ago/2018, o começo e o fim da base têm quase nenhum pedido
+inicio = as.Date("2017-01-02")
+fim = as.Date("2018-08-20")
+
+# Itens vendidos por semana em cada categoria e fiz que se a semana não tivesse venda isso seria igual a 0
+semanal = vendas %>%
+  mutate(semana = floor_date(data, "week", week_start = 1)) %>%
+  filter(semana >= inicio, semana <= fim) %>%
+  count(categoria, semana, name = "itens") %>%
+  complete(categoria, semana = seq(inicio, fim, by = "week"), fill = list(itens = 0))
+
+# Somei as categorias para ter também o total, isso é tudo, no caso
+total = semanal %>%
+  group_by(semana) %>%
+  summarise(itens = sum(itens)) %>%
+  mutate(categoria = "TOTAL")
+
+# tempo = número da semana 
+dados = bind_rows(total, semanal) %>%
+  group_by(categoria) %>%
+  mutate(tempo = row_number()) %>%
+  ungroup()
+
+categorias = unique(dados$categoria)
+
+#Plotando o gráfico
+dados %>%
+  filter(categoria == "TOTAL") %>%
+  ggplot(aes(semana, itens)) +
+  geom_line(color = "steelblue") +
+  labs(title = "Itens vendidos por semana (total)", x = NULL, y = "Itens") +
+  theme_minimal()
+# testes dos requisitos da regressão
+
+# Gabriel e Le, a regressão linear só dá p-valor e intervalo confiáveis se os resíduos forem independentes, com variância constante e mais ou menos normais. (da pra eu explicar isso aqui depois)
+
+testes = data.frame()
+
+for (nome in categorias) {
+  base = filter(dados, categoria == nome)
+
+  #Modelo de regressão
+  modelo_lm = lm(itens ~ tempo, data = base)
+ # sem sazonalidade, porque temos menos de 2 anos de dados, por isso o arima (tinhamos falado disso em aula)
+  # stepwise = FALSE faz o auto.arima testar mais modelos, como no tutorial
+  modelo_arima = auto.arima(ts(base$itens), stepwise = FALSE)
+
+  # cada categoria vira uma linha da tabela "testes", com o p-valor de cada teste.
+  # Nos testes da regressão, p < 0,05 quer dizer que o requisito não foi atendido.
+  testes = rbind(testes, data.frame(
+    categoria = nome,
+#Aqui eu estou conferindo os requisitos da regressão, residuos normais, homogeneidade, independencia. Todos os nomes estranhos são nomes de testes estatísticos 
+
+# resíduos normais: o Shapiro testa se os resíduos da regressão parecem uma distribuição normal
+shapiro_lm = shapiro.test(residuals(modelo_lm))$p.value,
+
+# variância constante: o Breusch-Pagan testa se o tamanho dos erros é parecido ao longo do tempo
+breusch_pagan = bptest(modelo_lm)$p.value,
+
+# resíduos independentes: o Durbin-Watson testa se o erro de uma semana depende do erro da semana anterior
+durbin_watson = dwtest(modelo_lm)$p.value,
+
+# Vendo se a serie é estacionaria, usando o adf, pré requisito pro arima
+# Pelo o que eu vi na documentação, aqui é ao contrário, p < 0,05 quer dizer que a série É estacionária
+adf = suppressWarnings(adf.test(base$itens)$p.value),
+
+# p,d,q que o auto.arima escolheu, o mesmo que o tutorial mostra
+# p = quantas semanas passadas entram, d = quantas vezes diferenciou a série, q = quantos erros passados entram
+# Isso tudo, como ele acha o melhor esta na documentação que eu mandei no grupo
+arima = paste(arimaorder(modelo_arima), collapse = ","),
+
+    # resíduos normais do arima
+shapiro_arima = shapiro.test(residuals(modelo_arima))$p.value
+  ))
+}
+
+# Aqui eu só mostro a tabela "testes" inteira
+testes %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
+  as_tibble() %>%
+  print(n = Inf, width = Inf)
+
+# em quantas categorias cada teste deu p < 0,05
+sem_total = filter(testes, categoria != "TOTAL")
+colSums(select(sem_total, -categoria, -arima) < 0.05)
+
+# Só para o total, ajustei os modelos de novo aqui porque no loop acima eu não guardei os modelos
+base = filter(dados, categoria == "TOTAL")
+modelo_lm = lm(itens ~ tempo, data = base)
+modelo_arima = auto.arima(ts(base$itens), stepwise = FALSE)
+
+# o modelo que o auto.arima escolheu e o quanto ele se aproxima da série - isso aqui é ideia do tutorial
+modelo_arima
+accuracy(modelo_arima$fitted, ts(base$itens))
+
+# resíduos ao longo do tempo, autocorrelação (acf) e histograma, com o teste de autocorrelação
+checkresiduals(modelo_lm)
+checkresiduals(modelo_arima)
+
+#Fiz algo mais visual, o que é mto feito
+# resíduo x valor ajustado - se os pontos abrirem em funil, a variância não é constante, ou se os dados tiverem um comportamento meio sus
+ggplot(data.frame(ajustado = fitted(modelo_lm), residuo = residuals(modelo_lm)),
+       aes(ajustado, residuo)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Resíduos x valores ajustados", x = "Valor ajustado", y = "Resíduo") +
+  theme_minimal()
+
+# qq plot, se os pontos ficarem longe da reta, os resíduos não são normais
+ggplot(data.frame(residuo = residuals(modelo_lm)), aes(sample = residuo)) +
+  stat_qq() +
+  stat_qq_line() +
+  labs(title = "QQ plot dos resíduos", x = "Quantis teóricos", y = "Quantis dos resíduos") +
+  theme_minimal()
+
+# coeficientes da regressão do total e o intervalo de confiança de 95% de cada um
+summary(modelo_lm)
+confint(modelo_lm)
+```
+
+```{r}
+# Teste dos modelos, eu tirei do tutorial do Possato, na parte "AUTO-ARIMA" porque eu não sabia como escrever
+# https://rpubs.com/Possato/ARIMA_ajuste_tutorial e também tive que pedir ajuda pra IA, mas coloquei em comentarios o que eu entendi
+
+# Aqui é feito categoria por categoria
+
+# dados para teste
+janela_treino = 52   # só os últimos 12 meses (52 semanas) entram no treino
+# quantas semanas vamos prever
+h = 12
+
+previsao_teste = data.frame()
+
+for (nome in categorias) {
+  # só as vendas da categoria da vez
+  base = filter(dados, categoria == nome)
+  n = nrow(base)
+
+  # as últimas 12 semanas (teste)
+  teste = tail(base, h)
+  # tudo que veio antes delas
+  antes_do_teste = head(base, n - h)
+  # dessas, só as últimas 52 semanas (treino)
+  treino = tail(antes_do_teste, janela_treino)
+
+  # regressão linear
+  modelo_lm = lm(itens ~ tempo, data = treino)
+  prev_lm = predict(modelo_lm, newdata = teste, interval = "prediction", level = 0.95)
+
+
+  modelo_arima = auto.arima(ts(treino$itens), stepwise = FALSE)
+
+  # previsão das 12 semanas
+  prev_arima = forecast(modelo_arima, h = h, level = 95)
+
+  # guarda o real, o previsto e a faixa de 95% (inferior e superior) de cada modelo
+  tabela_lm = data.frame(categoria = nome, modelo = "Regressão linear", semana = teste$semana,
+                         real = teste$itens, previsto = prev_lm[, "fit"],
+                         inferior = prev_lm[, "lwr"], superior = prev_lm[, "upr"])
+
+  tabela_arima = data.frame(categoria = nome, modelo = "ARIMA", semana = teste$semana,
+                            real = teste$itens, previsto = as.numeric(prev_arima$mean),
+                            inferior = as.numeric(prev_arima$lower), superior = as.numeric(prev_arima$upper))
+
+  # junta com o que já tinha das categorias anteriores
+  previsao_teste = rbind(previsao_teste, tabela_lm, tabela_arima)
+}
+
+# demanda não pode ser negativa, então cortei em zero
+previsao_teste = previsao_teste %>%
+  mutate(previsto = pmax(previsto, 0), inferior = pmax(inferior, 0), superior = pmax(superior, 0))
+```
+
+```{r}
+cores = c("Regressão linear" = "red", "ARIMA" = "blue")
+
+# Real x previsto nas 12 semanas de teste, só para o TOTAL.
+# A linha preta é o que vendeu de verdade e as coloridas são os modelos.
+# Para ver outra categoria é só trocar "TOTAL" pelo nome dela.
+previsao_teste %>%
+  filter(categoria == "TOTAL") %>%
+  ggplot(aes(semana, previsto, color = modelo)) +
+  geom_line(linewidth = 0.9) +
+  geom_line(aes(y = real), color = "black", linewidth = 1.1) +
+  scale_color_manual(values = cores) +
+  labs(title = "Previsão x real nas últimas 12 semanas (total)",
+       subtitle = "Linha preta = valor real", x = NULL, y = "Itens por semana", color = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+```{r}
+
+#Aqui eu pedi pra IA fazer por categoria, pq eu fiquei com preguiça
+
+categorias_por_imagem = 6
+grupos = split(categorias, ceiling(seq_along(categorias) / categorias_por_imagem))
+
+
+for (g in grupos) {
+  grafico = previsao_teste %>%
+    filter(categoria %in% g) %>%
+    ggplot(aes(semana, previsto, color = modelo)) +
+    geom_line(linewidth = 0.9) +
+    geom_line(aes(y = real), color = "black", linewidth = 1) +
+    facet_wrap(~ categoria, ncol = 2, scales = "free_y") +
+    scale_color_manual(values = cores) +
+    labs(title = "Previsão x real nas últimas 12 semanas, por categoria",
+         subtitle = "Linha preta = valor real", x = NULL, y = "Itens por semana", color = NULL) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+  print(grafico)
+}
+```
+
