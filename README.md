@@ -79,6 +79,11 @@ Em desenvolvimento
 - ``JuMP``
 - ``Overleaf``
 ## 9. Equipe
-* Gabriel Augusto Rebouças 
-* Letícia Palomero Rodrigues 
-* Lucas dos Santos Almeida 
+
+Este projeto foi desenvolvido por:
+
+| NOME  | 
+| :--- |
+| Leticia Palomero Rodrigues | 
+| Gabriel Augusto Rebouças Gomes | 
+| Lucas dos Santos Almeida|
