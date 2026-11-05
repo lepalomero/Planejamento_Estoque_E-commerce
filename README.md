@@ -58,6 +58,44 @@ No modelo total, obteve-se o seguinte resultado para a quantidade de produtos a 
 O R² = 0,59 indica que cerca de **59%** da variação da demanda é explicada pelo modelo. Considerando a **baixa quantidade de dados** disponíveis, o ajuste é aceitável. Com um histórico maior, o modelo tende a ganhar precisão e a produzir intervalos de confiança mais estreitos.
 ### 4.2. ARIMA 
 
+O segundo modelo utilizado é o ARIMA(p, d, q), que descreve a demanda a partir dos seus próprios valores passados e dos erros passados. Depois de diferenciada d vezes, a série é modelada por:
+
+<p align="center">
+  <b>w<sub>t</sub> = φ<sub>1</sub> w<sub>t-1</sub> + … + φ<sub>p</sub> w<sub>t-p</sub> + θ<sub>1</sub> ε<sub>t-1</sub> + … + θ<sub>q</sub> ε<sub>t-q</sub> + ε<sub>t</sub></b>
+</p>
+
+<p align="center">
+  em que <b>w<sub>t</sub> = (1 − B)<sup>d</sup> y<sub>t</sub></b>
+</p>
+
+Em que:
+
+- **y<sub>t</sub>**: demanda semanal no instante t
+- **w<sub>t</sub>**: série após d diferenciações
+- **B**: operador de defasagem (B y<sub>t</sub> = y<sub>t-1</sub>)
+- **p**: quantas semanas passadas da série entram no modelo (parte autorregressiva)
+- **d**: quantas vezes a série foi diferenciada
+- **q**: quantos erros passados entram no modelo (parte de médias móveis)
+- **φ<sub>i</sub>**: coeficientes autorregressivos
+- **θ<sub>j</sub>**: coeficientes de médias móveis
+- **ε<sub>t</sub>**: erro aleatório
+
+Os parâmetros (p, d, q) foram escolhidos com a função `auto.arima` do pacote `forecast`, em R. O SARIMA foi descartado porque, com poucos dados, não seria possível estimar a sazonalidade.
+
+#### Resultados
+
+Para a série total, o modelo selecionado foi o **ARIMA(2, 1, 2)**. Ele foi treinado com 52 semanas e validado nas 12 semanas seguintes (junho a agosto de 2018). Depois, foi reajustado com toda a base para prever as próximas 12 semanas.
+
+- **Modelo final (série total):** ARIMA(2, 1, 2)
+- **Previsão para as próximas 12 semanas:** parte de 982 itens na primeira semana, sobe até cerca de 1300 em outubro e chega a 1252 em novembro
+- **Estacionariedade (teste ADF):** confirmada em apenas 4 das 16 categorias
+- **Normalidade dos resíduos:** reprovada em 14 das 16 categorias
+
+#### Interpretação
+
+O ARIMA se adapta melhor ao padrão da série do que a regressão linear, que prevê valores sempre acima do observado. No entanto, suas previsões tendem a ficar próximas da **média da série**, o que é uma alternativa razoável quando há poucos dados. As previsões do ARIMA são bem menores que as da regressão linear (1739 a 1911 itens por semana).
+
+Como a estacionariedade foi reprovada na maioria das categorias e os resíduos não são normais, os **intervalos de previsão ficam comprometidos**. Com apenas 86 semanas de dados, nenhum dos modelos reproduz o pico da Black Friday de novembro de 2017, e **nenhum deles é adequado para uso operacional**.
 
 ### 4.3. Verificação da Qualidade dos Métodos
 Para verificar a eficácia e a veracidade dos métodos aplicados, testes estatísticos foram aplicados e os resultados analisados nas últimas 12 semanas da base foram comparadas para verificação. Para isso, mais especificamente, os testes Shapirro-Wilk e o teste de homocedasticidade foram analisados. 
