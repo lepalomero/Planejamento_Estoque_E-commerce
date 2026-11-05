@@ -20,7 +20,7 @@ Construir um estudo de caso de Planejamento e Controle de Produção, visando co
 ## 3. Banco de Dados
 Para a análise, foram utilizados dados públicos e reais de pedidos realizados na plataforma da Olist, empresa de comércio eletrônico brasileiro, entre 2017 e 2018. A base reúne mais de 100 mil pedidos e contempla informações sobre os produtos (categoria, dimensões, preço e peso), os vendedores e id dos clientes, além dos dados de cada pedido. 
 
-Devido à grande quantidade de produtos e pedidos, o processamento da base foi realizada por meio de consultas SQL, executadas em Julia com a biblioteca DuckDB. as 74 categorias originais foram ordenadas de modo decrescente com base no número de itens vendidos no período analisado e foram selecionadas as categorias necessárias para representar ao menos 80% do totl de itens vendidos. Esse critério resultou em 16 categorias. Para cada categoria selecionada, construiu-se uma série temporal de itens vendidos. Além disso, foi utilizada uma série agregada, construída a partir da base filtrada, totalizando 17 séries analisadas. 
+Devido à grande quantidade de produtos e pedidos, o processamento da base foi realizada por meio de consultas SQL, executadas em Julia com a biblioteca DuckDB. as 74 categorias originais foram ordenadas de modo decrescente com base no número de itens vendidos no período analisado e foram selecionadas as categorias necessárias para representar ao menos 80% do total de itens vendidos. Esse critério resultou em 16 categorias. Para cada categoria selecionada, construiu-se uma série temporal de itens vendidos. Além disso, foi utilizada uma série agregada, construída a partir da base filtrada, totalizando 17 séries analisadas. 
 
 
 ## 4. Previsão de Demanda
@@ -29,7 +29,8 @@ Para o desenvolvimento da previsão de demanda, foram analisados dois modelos di
 
 ### 4.2. ARIMA
 ## 5. Layout do Armazém 
-Para construção do Layout do Armazém, definiu-se
+Para construção do Layout do Armazém, definiu-se uma estrutura de Grid Layout with Cross Aisles, com um corredor principal e dois secundários paralelos, com corredores perpendiculares. A distância entre diferentes itens foi definida utilizando a distância Manhattan. Cada prateleira possui um peso máximo que ela suporta e uma altura correspondente e cada corredor é composto por um conjunto de prateleiras. Tal estrutura pode ser visualizada na Figura 1. 
+
 ## 6. Otimização Estoque
 ## 7. Roteamento caminhões
 ## 8. Técnicas e Tecnologias Utilizadas
