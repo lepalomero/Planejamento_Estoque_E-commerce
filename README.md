@@ -28,8 +28,46 @@ Para o desenvolvimento da previsão de demanda, foram analisados dois modelos di
 ### 4.1. Regressão Linear 
 
 ### 4.2. ARIMA
+
 ## 5. Layout do Armazém 
-Para construção do Layout do Armazém, definiu-se uma estrutura de Grid Layout with Cross Aisles, com um corredor principal e dois secundários paralelos, com corredores perpendiculares. A distância entre diferentes itens foi definida utilizando a distância Manhattan. Cada prateleira possui um peso máximo que ela suporta e uma altura correspondente e cada corredor é composto por um conjunto de prateleiras. Tal estrutura pode ser visualizada na Figura 1. 
+Para construção do Layout do Armazém, definiu-se uma estrutura de Grid Layout with Cross Aisles, com um corredor principal e dois secundários paralelos, com corredores perpendiculares. A distância entre diferentes itens foi definida utilizando a distância Manhattan. Cada prateleira possui um peso máximo que ela suporta e uma altura correspondente e cada corredor é composto por um conjunto de prateleiras.
+
+## 🏭 Layout do Armazém: Grid Layout with Cross Aisles
+
+O armazém segue o modelo **Grid Layout com Corredores Transversais (Cross Aisles)**.
+, onde há 1 corredor principal central e 1 corredor secundário de cada lado.
+Produtos e prateleiras ficam somente nas faixas interiores, entre os corredores e tal estrutura foi escolhida pela boa visibilidade e organização do estoque, além da facilidade de criação de rotas de picking curtas para otimização. 
+
+```text
+┌────────────────────────────────────────────────────┐
+│   ▼ RECEBIMENTO · CORREDOR TRANSVERSAL SUPERIOR    │
+├────────────────────────────────────────────────────┤
+│  SEC     ESTOQUE     PRINCIPAL    ESTOQUE      SEC │
+│  ↕    ┌─────┬─────┐      ↕      ┌─────┬─────┐   ↕  │
+│  ↕    │     │     │      ↕      │     │     │   ↕  │
+│  ↕    └─────┴─────┘      ↕      └─────┴─────┘   ↕  │
+│  ↕   · · · · · · · ·     ╬     · · · · · · · ·  ↕  │
+│  ↕    ┌─────┬─────┐      ↕      ┌─────┬─────┐   ↕  │
+│  ↕    │     │     │      ↕      │     │     │   ↕  │
+│  ↕    └─────┴─────┘      ↕      └─────┴─────┘   ↕  │
+│  ↕   · · · · · · · ·     ╬     · · · · · · · ·  ↕  │
+│  ↕    ┌─────┬─────┐      ↕      ┌─────┬─────┐   ↕  │
+│  ↕    │     │     │      ↕      │     │     │   ↕  │
+│  ↕    └─────┴─────┘      ↕      └─────┴─────┘   ↕  │
+├────────────────────────────────────────────────────┤
+│    ▲ EXPEDIÇÃO · CORREDOR TRANSVERSAL INFERIOR     │
+└────────────────────────────────────────────────────┘
+```
+### Legenda
+
+| Símbolo | Elemento | Função |
+|---------|----------|--------|
+| `PRINCIPAL` | Corredor principal | Eixo central de circulação (empilhadeiras, fluxo de maior volume) |
+| `SEC` | Corredores secundários | Circulação lateral junto às paredes (vazios, sem estoque) |
+| `· · · ·` | Corredor transversal | Liga os corredores longitudinais e separa as fileiras de prateleiras |
+| `╬` | Cruzamento | Encontro do corredor principal com um transversal |
+| `↕` | Sentido de circulação | Corredores longitudinais |
+
 
 ## 6. Otimização Estoque
 ## 7. Roteamento caminhões
