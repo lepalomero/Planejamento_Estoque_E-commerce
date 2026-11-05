@@ -1,4 +1,8 @@
-# Previsao-de-demanda
+# Planejamento e Controle de Produção E-commerce 
+<img src="media/fig-pcp-github.jpg" width="450">
+
+## Sumário 
+
 - [1. Descrição do Projeto](#1-Descrição-do-Projeto)
 - [2. Objetivos](#2-Objetivos)
 - [3. Banco de Dados](#3-Banco-de-Dados)
