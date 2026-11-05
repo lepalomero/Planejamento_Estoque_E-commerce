@@ -24,7 +24,12 @@ Devido à grande quantidade de produtos e pedidos, o processamento da base foi r
 
 
 ## 4. Previsão de Demanda
+Para o desenvolvimento da previsão de demanda, foram analisados dois modelos diferentes, sendo eles a Regressão Linear e o modelo de ARIMA. Ambos foram aplicados ao período de 02/01/2017 a 20/08/2018 e sua eficácia foi comparada a partir de testes estatísticos. 
+### 4.1. Regressão Linear 
+
+### 4.2. ARIMA
 ## 5. Layout do Armazém 
+Para construção do Layout do Armazém, definiu-se
 ## 6. Otimização Estoque
 ## 7. Roteamento caminhões
 ## 8. Técnicas e Tecnologias Utilizadas
