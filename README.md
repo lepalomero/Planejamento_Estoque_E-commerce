@@ -56,7 +56,10 @@ No modelo total, obteve-se o seguinte resultado para a quantidade de produtos a 
 #### Interpretação
 
 O R² = 0,59 indica que cerca de **59%** da variação da demanda é explicada pelo modelo. Considerando a **baixa quantidade de dados** disponíveis, o ajuste é aceitável. Com um histórico maior, o modelo tende a ganhar precisão e a produzir intervalos de confiança mais estreitos.
-## 4.3. Verificação da Qualidade dos Métodos
+### 4.2. ARIMA 
+
+
+### 4.3. Verificação da Qualidade dos Métodos
 Para verificar a eficácia e a veracidade dos métodos aplicados, testes estatísticos foram aplicados e os resultados analisados nas últimas 12 semanas da base foram comparadas para verificação. Para isso, mais especificamente, os testes Shapirro-Wilk e o teste de homocedasticidade foram analisados. 
 
 Como resultado, notou-se que a regressão apresenta valores mais altos que a previsão em toda a série, já o ARIMA segue um comportamento quase linear, mas sempre chutando na média da série. Por conta da quantidade de dados disponível, concluiu-se que o ARIMA possui um desempenho melhor que a Regressão Linear por respeitar mais o comportamento da série. Entretanto, os pré-requisitos de cada modelo não são obedecidos pelos dados analisados, fato confirmado ao aplicar os testes estatísticos. Nesse sentido, seria necessário a visualização de outros modelos para desenvolvimento de uma previsão de demanda mais confiável. 
