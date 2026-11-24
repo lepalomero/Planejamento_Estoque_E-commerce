@@ -18,7 +18,7 @@ function register_csv(connection, archive_dir, filename, table_name)
 end
 
 function run_queries()
-    project_dir = dirname(@__DIR__)
+    project_dir = dirname(dirname(@__DIR__))
     archive_dir = joinpath(project_dir, "archive")
     output_dir = joinpath(project_dir, "outputs")
     mkpath(output_dir)
