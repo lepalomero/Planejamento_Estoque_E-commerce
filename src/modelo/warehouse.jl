@@ -16,6 +16,8 @@ mutable struct Warehouse
     grafo::GrafoWarehouse
     estantes::Vector{Estante}
     config::ConfigEstoque
+    volumes::Dict{String,Union{Nothing,Float64}}
+    frequencias_pedidos::Dict{String,Int}
 end
 
 function Warehouse(config::ConfigEstoque)
@@ -33,5 +35,11 @@ function Warehouse(config::ConfigEstoque)
         )
     end
 
-    return Warehouse(GrafoWarehouse(), estantes, config)
+    return Warehouse(
+        GrafoWarehouse(),
+        estantes,
+        config,
+        Dict{String,Union{Nothing,Float64}}(),
+        Dict{String,Int}(),
+    )
 end

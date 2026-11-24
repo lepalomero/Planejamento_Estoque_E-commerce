@@ -25,5 +25,12 @@ volume.
 
 `alocar!(warehouse, estoque, MetodoABC())` monta o grafo a partir da estante
 de saida e distribui os itens por frequencia de pedidos; itens de classe A
-recebem primeiro as estantes mais proximas. Rode os testes focados com
-`julia --project test\\runtests.jl`.
+recebem primeiro as estantes mais proximas. A mesma funcao aceita chamadas
+incrementais no Warehouse preenchido, respeitando a capacidade e o limite de
+estantes por item.
+
+`executar_ciclo!(warehouse, previsoes, config)` agrega as previsoes semanais
+por mes calendario e repoe, no inicio de cada mes, apenas o deficit em relacao
+ao estoque atual. A coluna pode ser configurada por `coluna_previsao` (padrao
+`:regressao_previsto`). A retirada diaria ainda nao esta implementada. Rode os
+testes focados com `julia --project test\\runtests.jl`.

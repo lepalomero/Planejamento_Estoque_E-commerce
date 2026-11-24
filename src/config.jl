@@ -11,6 +11,7 @@ struct ConfigEstoque
     comprimento_armazem::Int
     posicao_saida::Tuple{Int,Int}
     semente::Int
+    coluna_previsao::Symbol
 end
 
 function ConfigEstoque(;
@@ -26,6 +27,7 @@ function ConfigEstoque(;
     comprimento_armazem=80,
     posicao_saida=(0, 0),
     semente=7,
+    coluna_previsao=:regressao_previsto,
 )
     largura_armazem > 0 || throw(ArgumentError("largura_armazem deve ser maior que zero"))
     comprimento_armazem >= 2 ||
@@ -44,6 +46,14 @@ function ConfigEstoque(;
         throw(ArgumentError("abc_percentuais deve somar 100"))
     length(posicao_saida) == 2 ||
         throw(ArgumentError("posicao_saida deve conter duas coordenadas"))
+    coluna_previsao in (
+        :regressao_previsto,
+        :regressao_inferior,
+        :regressao_superior,
+        :arima_previsto,
+        :arima_inferior,
+        :arima_superior,
+    ) || throw(ArgumentError("coluna_previsao invalida: $(coluna_previsao)"))
 
     return ConfigEstoque(
         Float64(ocupacao_min),
@@ -58,5 +68,6 @@ function ConfigEstoque(;
         Int(comprimento_armazem),
         (Int(posicao_saida[1]), Int(posicao_saida[2])),
         Int(semente),
+        Symbol(coluna_previsao),
     )
 end

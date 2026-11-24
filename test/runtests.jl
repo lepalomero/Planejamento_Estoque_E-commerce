@@ -135,6 +135,32 @@ end
     @test all(quantidade == 4 for (_, quantidade) in alocacoes_a)
     @test 1 in first.(alocacoes_a)
     @test_throws ArgumentError alocar!(warehouse, estoque, MetodoABC())
+    alocar!(warehouse, [ProdutoEstoque("A", 1, 2.0, 10)], MetodoABC())
+    @test sum(
+        item.quantidade
+        for estante in warehouse.estantes
+        for item in estante.itens
+        if item.id == "A";
+        init=0,
+    ) == 13
+    @test sum(
+        item.quantidade
+        for estante in warehouse.estantes
+        for item in estante.itens
+        if item.id == "B";
+        init=0,
+    ) == 1
+    @test sum(
+        item.quantidade
+        for estante in warehouse.estantes
+        for item in estante.itens
+        if item.id == "C";
+        init=0,
+    ) == 1
+    @test length([
+        estante for estante in warehouse.estantes
+        if any(item -> item.id == "A", estante.itens)
+    ]) == 3
 
     limite_config = ConfigEstoque(
         capacidade_prateleira=10,
@@ -147,4 +173,89 @@ end
         [ProdutoEstoque("A", 12, 2.0, 1)],
         MetodoABC(),
     )
+end
+
+@testset "ciclo mensal de reposicao" begin
+    @test ConfigEstoque().coluna_previsao == :regressao_previsto
+    config = ConfigEstoque(
+        capacidade_prateleira=10,
+        prateleiras_por_estante=1,
+        n_estantes=2,
+        variedade_por_estante=1,
+        quantidade_maxima_estantes_item=1,
+        coluna_previsao=:regressao_previsto,
+    )
+    warehouse = Warehouse(config)
+    alocar!(warehouse, [ProdutoEstoque("A", 3, 1.0, 2)], MetodoABC())
+    mktempdir() do diretorio
+        caminho_previsao = joinpath(diretorio, "previsao.csv")
+        write(
+            caminho_previsao,
+            "categoria,item,semana,regressao_previsto,regressao_inferior,regressao_superior,arima_previsto,arima_inferior,arima_superior\n" *
+            "cat,A,2025-01-06,2,0,0,4,0,0\n" *
+            "cat,A,2025-01-13,2,0,0,4,0,0\n" *
+            "cat,A,2025-02-03,5,0,0,5,0,0\n",
+        )
+        previsao = carregar_previsao(caminho_previsao)
+        executar_ciclo!(warehouse, previsao, config)
+        @test sum(
+            item.quantidade
+            for estante in warehouse.estantes
+            for item in estante.itens
+            if item.id == "A";
+            init=0,
+        ) == 5
+
+        config_arima = ConfigEstoque(
+            capacidade_prateleira=10,
+            prateleiras_por_estante=1,
+            n_estantes=2,
+            variedade_por_estante=1,
+            quantidade_maxima_estantes_item=1,
+            coluna_previsao=:arima_previsto,
+        )
+        warehouse_arima = Warehouse(config_arima)
+        alocar!(warehouse_arima, [ProdutoEstoque("A", 3, 1.0, 2)], MetodoABC())
+        executar_ciclo!(warehouse_arima, previsao, config_arima)
+        @test sum(
+            item.quantidade
+            for estante in warehouse_arima.estantes
+            for item in estante.itens
+            if item.id == "A";
+            init=0,
+        ) == 8
+    end
+
+    config_sem_capacidade = ConfigEstoque(
+        capacidade_prateleira=10,
+        prateleiras_por_estante=1,
+        n_estantes=2,
+        variedade_por_estante=1,
+        quantidade_maxima_estantes_item=1,
+    )
+    warehouse_sem_capacidade = Warehouse(config_sem_capacidade)
+    alocar!(
+        warehouse_sem_capacidade,
+        [
+            ProdutoEstoque("A", 10, 1.0, 2),
+            ProdutoEstoque("B", 0, 1.0, 1),
+        ],
+        MetodoABC(),
+    )
+    previsao_sem_capacidade = Dict(
+        "A" => [PrevisaoSemanal("cat", Date(2025, 1, 6), 11, 0, 0, 0, 0, 0)],
+        "B" => [PrevisaoSemanal("cat", Date(2025, 1, 6), 1, 0, 0, 0, 0, 0)],
+    )
+    @test_logs (:warn, r"Reposicao nao coube no Warehouse") executar_ciclo!(
+        warehouse_sem_capacidade,
+        previsao_sem_capacidade,
+        config_sem_capacidade,
+    )
+    @test sum(
+        item.quantidade
+        for estante in warehouse_sem_capacidade.estantes
+        for item in estante.itens
+        if item.id == "B";
+        init=0,
+    ) == 1
 end

@@ -9,6 +9,7 @@ include(joinpath(@__DIR__, "estoque", "gerar_estoque.jl"))
 include(joinpath(@__DIR__, "alocacao", "abc.jl"))
 include(joinpath(@__DIR__, "alocacao", "alocacao.jl"))
 include(joinpath(@__DIR__, "io", "carregar_dados_estoque.jl"))
+include(joinpath(@__DIR__, "simulacao", "ciclo_mensal.jl"))
 
 function main()
     run_queries()
@@ -23,6 +24,7 @@ function main()
     estoque = gerar_estoque(pedidos, produtos, config)
     warehouse = Warehouse(config)
     alocar!(warehouse, estoque, MetodoABC())
+    executar_ciclo!(warehouse, previsoes, config)
 
     return previsoes
 end
