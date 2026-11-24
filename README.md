@@ -1,5 +1,5 @@
-# Previsao-de-demanda
-Repositório criado para armazenar arquivos do Trabalho Final da disciplina MS715- Planejamento e Controle de Produção 
+# Planejamento e Controle de Produção E-commerce 
+<img src="media/fig-pcp-github.jpg" width="450">
 
 Equipe: 
 Gabriel Augusto Rebouças 
