@@ -8,15 +8,15 @@
 - [3. Banco de Dados](#3-Banco-de-Dados)
 - [4. Previsão de Demanda](#4-Previsão-de-Demanda)
 - [5. Layout do Armazém](#5-Layout-do-Armazém)
-- [6. Otimização estoque](#6-Otimização-estoque)
-- [7. Roteamento caminhões](#7-Roteamento-caminhões)
+- [6. Gestão e alocação do estoque](#6-Gestão-e-alocação-do-estoque)
+- [7. Roteamento de picking e caminhões](#7-Roteamento-de-picking-e-caminhões)
 - [8. Técnicas e Tecnologias Utilizadas](#8-Técnicas-e-Tecnologias-Utilizadas)
-- [9. Equipe](#9-Equipe)
+- [9. Estrutura do projeto](#9-Estrutura-do-projeto)
+- [10. Integrantes](#10-Integrantes)
 
 ## 1. Descrição do Projeto 
 
-O trabalho é um estudo de caso de Planejamento e Controle de Produção sobre um E-commerce Brasileiro a partir do histórico de vendas público da Olist, entre janeiro 2017 e agosto de 2018. A execução do trabalho foi dividida em etapas e ainda está em andamento. Primeiro foi realizada a limpeza de dados, utilizando SQL para filtrar os principais produtos a serem analisados e armazenados para compor o estoque principal do e-commerce. A partir de tal seleção, utilizamos os métodos de regressão linear e ARIMA para fazer uma previsão de demanda, uma vez que métodos de aprendizado de máquina não poderiam ser aplicados pela baixa quantidade de dados para análise. Com a previsão de demanda por produto, definimos a estrutura do armazém e utilizamos a distância de Manhattan para estruturar o deslocamento dentro do espaço. 
-Como passos seguintes, pretende-se construir o modelo de otimização do posicionamento dos produtos dentro do armazém idealizado e de otimização do roteamento de caminhões para entregas diárias. 
+Este projeto é um estudo de caso de Planejamento e Controle da Produção para um e-commerce brasileiro, baseado no histórico público de vendas da Olist entre janeiro de 2017 e agosto de 2018. A versão final reúne a preparação dos dados com SQL, a análise de previsão de demanda por regressão linear e ARIMA, a geração e alocação de estoque, a simulação de picking e o cálculo e visualização de rotas no armazém. Esta é a versão final do repositório, sem previsão de novas alterações no código.
 
 ## 2. Objetivos
 Construir um estudo de caso de Planejamento e Controle de Produção, visando cobrir os tópicos de previsão de demanda, organização de armazém e otimização de entrega.
@@ -108,7 +108,7 @@ O armazém segue o modelo Grid Layout com Corredores Transversais (Cross Aisles)
 , onde há 1 corredor principal central e 1 corredor secundário de cada lado.
 Produtos e prateleiras ficam somente nas faixas interiores, entre os corredores e tal estrutura foi escolhida pela boa visibilidade e organização do estoque, além da facilidade de criação de rotas de picking curtas para otimização. 
 
-Na implementação do picking, as estantes ficam espelhadas em torno do eixo central `x = 0`, onde está a saída `(0, 0)`. Cada trecho da rota usa o menor caminho permitido pelos corredores central e laterais; não há deslocamentos diagonais ou atalhos entre estantes. A execução principal gera os mapas SVG automaticamente; para regenerá-los, execute `julia src\visualizacao\visualizar.jl outputs\picking\abc_sku`, `outputs\picking\random` ou `outputs\picking\coocorrencia`.
+Na implementação do picking, as estantes ficam espelhadas em torno do eixo central `x = 0`, onde está a saída `(0, 0)`. Cada trecho da rota usa o menor caminho permitido pelos corredores central e laterais; não há deslocamentos diagonais ou atalhos entre estantes. A execução principal gera automaticamente os mapas SVG de todas as waves. Para regenerar as visualizações de um método, execute, por exemplo, `julia --project=. src\visualizacao\visualizar.jl outputs\picking\abc_sku`; substitua `abc_sku` por `random` ou `coocorrencia` para os outros métodos.
 
 ```text
 ┌────────────────────────────────────────────────────┐
@@ -141,39 +141,60 @@ Na implementação do picking, as estantes ficam espelhadas em torno do eixo cen
 | `↕` | Sentido de circulação | Corredores longitudinais |
 
 
-## 6. Otimização Estoque
-Em desenvolvimento 
+## 6. Gestão e alocação do estoque
 
-### Picking e simulação
+A geração de estoque, a alocação e a simulação mensal estão implementadas. `gerar_estoque` usa uma janela histórica configurável (30 dias por padrão) para contar unidades vendidas e frequência de pedidos por SKU, calcula o volume a partir das dimensões dos produtos e valida as restrições de capacidade. Quando é configurada uma capacidade finita de prateleira, também verifica os limites de ocupação mínima e máxima; caso seja necessário completar a ocupação mínima, seleciona estoque adicional de forma ponderada pela frequência, com semente reproduzível.
 
-Execute `julia --project=. src/main.jl` para gerar e simular sequencialmente `abc_sku`, `random` e `coocorrencia`, cada método com seu próprio `Warehouse`. Os resultados ficam separados em `outputs/picking/abc_sku/`, `outputs/picking/random/` e `outputs/picking/coocorrencia/`; todos os CSVs e as visualizações também incluem o identificador do método no nome. A alocação `random` embaralha SKUs e estantes com a semente configurada, preenchendo cada estante escolhida até sua capacidade antes de sortear outra. `coocorrencia` agrupa SKUs cujas previsões são positivas nas mesmas semanas. Cada pasta contém estoque inicial e mensal, grafos, rotas, itens retirados, distâncias e visualizações em SVG/HTML. Rotas, itens retirados e distâncias são discriminados por caminhão (`caminhao_id`). A falta de estoque ou de capacidade aparece nas colunas `falta` e `motivo` dos arquivos de itens retirados. Os mapas de rota são gerados para todas as waves e mostram os caminhões 1, 2 e 3 simultaneamente, em vermelho, azul e verde, dentro do índice visual de cada método. Cada método recebe um gráfico temporal com a distância total de todas as waves. `outputs/picking/distancia_temporal_abc_sku_random_coocorrencia.svg` compara os três métodos no mesmo gráfico, cada um com uma cor, somando a distância de todos os caminhões por wave.
+Há três métodos de alocação, executados separadamente pela `main`, cada um com sua própria instância de `Warehouse`:
 
-Depois das três execuções, compare a soma das distâncias de todas as waves e caminhões e o tempo de execução com `julia --project=. src\comparar_metodos.jl`. A duração medida para cada método inclui a alocação inicial, a simulação mensal e a geração das visualizações; a preparação comum dos dados e a limpeza da pasta ficam fora da medição. O tempo de cada método é salvo em `tempo_execucao_<metodo>.csv` na pasta correspondente. O comparador imprime as distâncias e os tempos, identifica o método mais rápido e gera `outputs/picking/comparacao_distancia_abc_sku_random_coocorrencia.csv` com ambos os valores.
+- **`abc_sku`** (`MetodoABC`): ordena SKUs pela frequência de pedidos e os classifica em faixas ABC. Os percentuais padrão das classes são 70%, 20% e 10%; são configuráveis em `ConfigEstoque`.
+- **`random`** (`MetodoAleatorio`): embaralha a ordem dos SKUs e das estantes com uma semente configurável, respeitando a capacidade e o limite de estantes por SKU.
+- **`coocorrencia`** (`MetodoCoocorrencia`): constrói relações entre SKUs com previsão positiva na mesma semana e prioriza SKUs que coocorrem com maior frequência.
 
-Os parâmetros gerais ficam em `ConfigEstoque` (`src/config/config.jl`), incluindo janela histórica, cobertura de categorias e critérios de reposição aleatória. As capacidades padrão do caminhão são volume `30` e variedade de `1` SKU; ajuste `capacidade_volume_caminhao` e `capacidade_quantidade_caminhao` em conjunto. O volume da carga é calculado como volume unitário vezes quantidade e usa a mesma unidade cúbica dos produtos. Cada execução remove os CSVs de picking gerados anteriormente antes de gravar os novos, sem apagar outros arquivos da pasta.
+Durante o ciclo mensal, o sistema repõe o estoque conforme a demanda prevista e processa cada semana como uma wave. Cada método salva seus dados em `outputs/picking/<metodo>/`, sem misturar ou sobrescrever os resultados dos demais métodos. Os CSVs incluem estoque inicial e mensal, grafo do armazém, rotas, itens retirados e distâncias por wave. Para itens não atendidos, os arquivos registram a quantidade em falta e o motivo.
 
-`MetodoABC()` ordena os SKUs pela frequência de pedidos. `MetodoAleatorio(semente)` escolhe a ordem dos SKUs e das estantes aleatoriamente, usando a semente para resultados reproduzíveis e respeitando capacidades e limite de estantes por SKU. `MetodoCoocorrencia(previsoes, coluna)` ordena SKUs pela coocorrência de previsões semanais positivas. O script principal executa os três métodos e grava cada resultado em sua própria pasta, sem sobrescrever os dados dos outros métodos.
+Antes de executar a `main`, `outputs/previsao_por_item.csv` deve estar disponível com as previsões por SKU e semana (previsão, limites inferior e superior para regressão e ARIMA). A análise e os testes dos modelos estão documentados em `previsao_de_demanda.Rmd`; esse arquivo não exporta automaticamente o CSV de previsão consumido pela `main`, que deve ser preparado separadamente. A `main` consulta os CSVs Olist em `archive/`, gera `outputs/pedidos.csv` e `outputs/produtos.csv` e carrega as previsões. Para preparar os dados e rodar os três métodos em sequência, na raiz do projeto:
 
-## 7. Roteamento caminhões
-Em desenvolvimento
+```powershell
+julia --project=. src\main.jl
+```
+
+## 7. Roteamento de picking e caminhões
+
+O roteamento de picking está implementado. Em cada wave, a demanda é distribuída entre caminhões respeitando a capacidade volumétrica e o limite de SKUs por caminhão, ambos configuráveis em `ConfigEstoque`. Os padrões atuais são volume `10.000.000` e até `10` SKUs por caminhão. Unidades, volume, estoque insuficiente e itens que não podem ser carregados são registrados nos CSVs da wave.
+
+Para calcular a rota, o sistema identifica as estantes que cada caminhão precisa visitar e usa uma heurística de vizinho mais próximo: a cada passo visita a estante pendente mais próxima da posição atual e, ao terminar, retorna à saída. A distância entre duas estantes considera os corredores do layout — corredor central e corredores laterais — e escolhe o menor caminho Manhattan permitido. A rota não é uma solução exata de otimização global.
+
+Cada wave gera arquivos `rota_wave_<data>_<metodo>.csv` e `distancia_wave_<data>_<metodo>.csv`, com dados discriminados por caminhão. As visualizações mostram todas as waves e desenham os caminhões 1, 2 e 3 em vermelho, azul e verde; os CSVs e os cálculos de distância incluem todos os caminhões utilizados. Cada pasta de método contém um gráfico temporal das distâncias totais por wave. O gráfico comparativo `outputs/picking/distancia_temporal_abc_sku_random_coocorrencia.svg` exibe, no mesmo gráfico, todas as waves dos três métodos em séries de cores distintas.
+
+Depois de executar a `main`, compare as distâncias acumuladas e os tempos de execução:
+
+```powershell
+julia --project=. src\comparar_metodos.jl
+```
+
+O comparador lê as distâncias de todas as waves e o tempo salvo em `tempo_execucao_<metodo>.csv`, imprime os totais e os métodos com menor distância e menor tempo, e gera `outputs/picking/comparacao_distancia_abc_sku_random_coocorrencia.csv`. O tempo por método inclui alocação, simulação e geração das visualizações; a preparação comum dos dados e a limpeza da saída ficam fora da medição.
+
+Os parâmetros do armazém, estoque, alocação e caminhões ficam em `src/config/config.jl` (`ConfigEstoque`). Cada execução limpa os CSVs anteriores de picking dentro da pasta do método antes de gravar os resultados novos, sem apagar outros arquivos da pasta.
+
+Para executar os testes automatizados:
+
+```powershell
+julia --project=. test\runtests.jl
+```
 
 ## 8. Técnicas e Tecnologias Utilizadas
-- ``Julia``
-- ``R``
-- ``HiGHS``
-- ``JuMP``
-- ``Overleaf``
-## 9. Equipe
 
-Este projeto foi desenvolvido por:
+- **Julia 1.9 ou superior**: linguagem do pipeline de dados, geração de estoque, alocação, simulação, roteamento, comparação e visualizações.
+- **DuckDB.jl / DuckDB**: consultas SQL sobre os CSVs Olist e leitura tipada dos arquivos de entrada, sem exigir um servidor de banco de dados.
+- **R**: análise e avaliação das séries temporais documentadas em `previsao_de_demanda.Rmd`.
+- **Pacotes R**: `tidyverse` (incluindo manipulação e gráficos), `lubridate`, `forecast`, `lmtest` e `tseries`.
+- **Overleaf**: ferramenta de edição do relatório do projeto.
+- **JuMP e HiGHS**: não são dependências da implementação final nem estão listados em `Project.toml`; alocação e roteamento são feitos pelas heurísticas descritas acima.
 
-| NOME  | 
-| :--- |
-| Leticia Palomero Rodrigues | 
-| Gabriel Augusto Rebouças Gomes | 
-| Lucas dos Santos Almeida|
+O ambiente Julia está descrito em `Project.toml` e travado em `Manifest.toml`. As bibliotecas R são instaladas separadamente no ambiente usado para executar o R Markdown.
 
-## Estrutura do projeto
+## 9. Estrutura do projeto
 
 ```text
 .
@@ -197,10 +218,16 @@ Este projeto foi desenvolvido por:
 │   ├── produtos.csv
 │   └── picking/
 │       ├── abc_sku/
-│       ├── coocorrencia/
-│       ├── random/
-│       ├── comparacao_distancia_abc_sku_random_coocorrencia.csv
-│       └── distancia_temporal_abc_sku_random_coocorrencia.svg
+│       │   ├── *.csv (estoque, grafo, waves, rotas, itens, distâncias e tempo)
+│       │   └── visualizacoes/
+│       │       ├── index_abc_sku.html
+│       │       ├── grafo_inicial_abc_sku.svg
+│       │       ├── grafo_wave_<data>_caminhoes_1_2_3_abc_sku.svg
+│       │       └── distancia_temporal_abc_sku.svg
+│       ├── random/ (mesma estrutura, identificador random)
+│       ├── coocorrencia/ (mesma estrutura, identificador coocorrencia)
+│       ├── distancia_temporal_abc_sku_random_coocorrencia.svg
+│       └── comparacao_distancia_abc_sku_random_coocorrencia.csv (gerado pelo comparador)
 ├── src/
 │   ├── main.jl
 │   ├── comparar_metodos.jl
@@ -237,4 +264,14 @@ Este projeto foi desenvolvido por:
 └── Previsão de demanda.pdf
 ```
 
-`src/main.jl` coordena a preparação dos dados e a execução sequencial das heurísticas. `src/comparar_metodos.jl` compara as distâncias e os tempos de execução. Os módulos estão agrupados por responsabilidade: alocação, configuração, estoque, entrada/saída de dados, modelos, picking, simulação e visualização. As consultas SQL ficam em `src/io/sql_queries.jl`; os arquivos duplicados e obsoletos que estavam diretamente em `src/` foram removidos. Cada pasta de método em `outputs/picking/` contém `visualizacoes/` e CSVs com o sufixo do método, incluindo distâncias, rotas, estoque e `tempo_execucao_<metodo>.csv`; esses resultados variam conforme os dados. O índice de cada pasta mostra todas as waves, as rotas dos três primeiros caminhões e um gráfico temporal da distância total. O gráfico comparativo apresenta todas as waves dos três métodos em séries coloridas.
+`src/main.jl` coordena a consulta aos dados, a preparação do estoque e a execução sequencial das três heurísticas. `src/comparar_metodos.jl` compara distâncias e tempos. Os módulos Julia estão agrupados por responsabilidade em `alocacao/`, `config/`, `estoque/`, `io/`, `modelo/`, `picking/`, `simulacao/` e `visualizacao/`. A implementação SQL fica em `src/io/sql_queries.jl`. Cada pasta de método contém os CSVs de todas as waves, os índices HTML e os SVGs descritos acima.
+
+## 10. Integrantes
+
+Este projeto foi desenvolvido por:
+
+| NOME |
+| :--- |
+| [ Leticia Palomero Rodrigues ](https://www.linkedin.com/in/leticia-palomero-rodrigues/) [<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" width="16" />](https://www.linkedin.com/in/leticia-palomero-rodrigues/) |
+| [ Gabriel Augusto Rebouças Gomes ](https://www.linkedin.com/in/gabriel-augusto-rebou%C3%A7as-gomes/) [<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" width="16" />](https://www.linkedin.com/in/gabriel-augusto-rebou%C3%A7as-gomes/) |
+| [ Lucas dos Santos Almeida ](https://www.linkedin.com/in/lucas-dos-santos-almeida-052114312/) [<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" width="16" />](https://www.linkedin.com/in/lucas-dos-santos-almeida-052114312/) |
