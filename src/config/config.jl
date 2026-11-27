@@ -12,6 +12,12 @@ struct ConfigEstoque
     posicao_saida::Tuple{Int,Int}
     semente::Int
     coluna_previsao::Symbol
+    janela_historico_dias::Int
+    penalidade_quantidade_extra::Float64
+    variacao_aleatoria_extra::Float64
+    cobertura_categorias::Float64
+    capacidade_volume_caminhao::Union{Nothing,Int}
+    capacidade_quantidade_caminhao::Union{Nothing,Int}
 end
 
 function ConfigEstoque(;
@@ -21,13 +27,19 @@ function ConfigEstoque(;
     prateleiras_por_estante=3,
     n_estantes=nothing,
     abc_percentuais=(70, 20, 10),
-    variedade_por_estante=3,
+    variedade_por_estante=2,
     quantidade_maxima_estantes_item=1,
-    largura_armazem=40,
-    comprimento_armazem=80,
+    largura_armazem=80,
+    comprimento_armazem=40,
     posicao_saida=(0, 0),
     semente=7,
     coluna_previsao=:regressao_previsto,
+    janela_historico_dias=30,
+    penalidade_quantidade_extra=0.5,
+    variacao_aleatoria_extra=0.25,
+    cobertura_categorias=0.8,
+    capacidade_volume_caminhao=10000000,
+    capacidade_quantidade_caminhao=10,
 )
     largura_armazem > 0 || throw(ArgumentError("largura_armazem deve ser maior que zero"))
     comprimento_armazem >= 2 ||
@@ -46,6 +58,23 @@ function ConfigEstoque(;
         throw(ArgumentError("abc_percentuais deve somar 100"))
     length(posicao_saida) == 2 ||
         throw(ArgumentError("posicao_saida deve conter duas coordenadas"))
+    janela_historico_dias > 0 ||
+        throw(ArgumentError("janela_historico_dias deve ser positiva"))
+    isfinite(penalidade_quantidade_extra) && penalidade_quantidade_extra >= 0 ||
+        throw(ArgumentError("penalidade_quantidade_extra deve ser finita e nao negativa"))
+    isfinite(variacao_aleatoria_extra) && variacao_aleatoria_extra >= 0 ||
+        throw(ArgumentError("variacao_aleatoria_extra deve ser finita e nao negativa"))
+    0 < cobertura_categorias <= 1 ||
+        throw(ArgumentError("cobertura_categorias deve estar entre 0 e 1"))
+    (capacidade_volume_caminhao === nothing) ==
+        (capacidade_quantidade_caminhao === nothing) ||
+        throw(ArgumentError("Configure volume e quantidade do caminhao juntos"))
+    if capacidade_volume_caminhao !== nothing
+        all(
+            valor -> valor isa Real && isfinite(valor) && valor > 0 && isinteger(valor),
+            (capacidade_volume_caminhao, capacidade_quantidade_caminhao),
+        ) || throw(ArgumentError("Capacidades do caminhao devem ser inteiros positivos"))
+    end
     coluna_previsao in (
         :regressao_previsto,
         :regressao_inferior,
@@ -69,5 +98,11 @@ function ConfigEstoque(;
         (Int(posicao_saida[1]), Int(posicao_saida[2])),
         Int(semente),
         Symbol(coluna_previsao),
+        Int(janela_historico_dias),
+        Float64(penalidade_quantidade_extra),
+        Float64(variacao_aleatoria_extra),
+        Float64(cobertura_categorias),
+        capacidade_volume_caminhao === nothing ? nothing : Int(capacidade_volume_caminhao),
+        capacidade_quantidade_caminhao === nothing ? nothing : Int(capacidade_quantidade_caminhao),
     )
 end

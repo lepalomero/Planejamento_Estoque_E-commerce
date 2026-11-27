@@ -140,7 +140,77 @@ function _alocar_item_incremental!(warehouse, item, prateleiras, volumes)
     return
 end
 
-function alocar!(warehouse::Warehouse, estoque, ::MetodoABC)
+function _unidades_cabem(item, estante, rack_capacity, volumes, restante)
+    isinf(rack_capacity) && return restante
+    capacidade_livre = max(0.0, rack_capacity - _volume_ocupado(estante, volumes))
+    return max(
+        0,
+        floor(Int, (capacidade_livre + eps(max(1.0, capacidade_livre))) /
+                   something(item.volume)),
+    )
+end
+
+function _alocar_item_aleatorio!(warehouse, item, prateleiras, volumes, rng)
+    config = warehouse.config
+    rack_capacity = config.capacidade_prateleira * config.prateleiras_por_estante
+    max_racks = min(config.quantidade_maxima_estantes_item, length(prateleiras))
+    existentes = filter(
+        estante -> any(alocado -> alocado.id == item.id, estante.itens),
+        prateleiras,
+    )
+    length(existentes) <= max_racks || throw(ArgumentError(
+        "O item $(item.id) ja excede o limite de estantes",
+    ))
+    shuffle!(rng, existentes)
+
+    usados = Set(estante.id for estante in existentes)
+    plano = Tuple{Estante,Int}[]
+    restante = item.quantidade
+    for estante in existentes
+        restante == 0 && break
+        quantidade = min(
+            restante,
+            _unidades_cabem(item, estante, rack_capacity, volumes, restante),
+        )
+        quantidade > 0 && push!(plano, (estante, quantidade))
+        restante -= quantidade
+    end
+
+    candidatos = [
+        estante for estante in prateleiras
+        if !(estante.id in usados) &&
+           length(estante.itens) < config.variedade_por_estante
+    ]
+    shuffle!(rng, candidatos)
+    for estante in candidatos
+        restante == 0 && break
+        length(usados) >= max_racks && break
+        quantidade = min(
+            restante,
+            _unidades_cabem(item, estante, rack_capacity, volumes, restante),
+        )
+        quantidade == 0 && continue
+        push!(plano, (estante, quantidade))
+        push!(usados, estante.id)
+        restante -= quantidade
+    end
+    restante == 0 || throw(ArgumentError(
+        "Nao foi possivel alocar $(item.id) em ate $(config.quantidade_maxima_estantes_item) estantes aleatorias",
+    ))
+
+    for (estante, quantidade) in plano
+        indice = findfirst(alocado -> alocado.id == item.id, estante.itens)
+        if indice === nothing
+            push!(estante.itens, ItemArmazenado(item.id, quantidade))
+        else
+            anterior = estante.itens[indice]
+            estante.itens[indice] = ItemArmazenado(item.id, anterior.quantidade + quantidade)
+        end
+    end
+    return
+end
+
+function alocar!(warehouse::Warehouse, estoque, metodo::MetodoAlocacao)
     ids = [item.id for item in estoque]
     length(unique(ids)) == length(ids) ||
         throw(ArgumentError("O estoque contem IDs duplicados"))
@@ -151,12 +221,13 @@ function alocar!(warehouse::Warehouse, estoque, ::MetodoABC)
         item.frequencia_pedidos >= 0
         for item in estoque
     ) || throw(ArgumentError("O estoque contem quantidade, volume ou frequencia invalida"))
+    itens_ordenados = _itens_ordenados(estoque, warehouse.config.abc_percentuais, metodo)
     estoque_vazio = all(isempty(estante.itens) for estante in warehouse.estantes)
     if estoque_vazio
         capacidade_variedade =
             count(estante -> !estante.eh_saida, warehouse.estantes) *
             warehouse.config.variedade_por_estante
-        length(ids) <= capacidade_variedade ||
+        count(item -> item.quantidade > 0, estoque) <= capacidade_variedade ||
             throw(ArgumentError("O Warehouse nao tem variedade suficiente para todos os IDs"))
     end
 
@@ -182,17 +253,14 @@ function alocar!(warehouse::Warehouse, estoque, ::MetodoABC)
         by=indice -> (distancias[indice], warehouse.estantes[indice].id),
     )
     prateleiras = [warehouse.estantes[indice] for indice in indices_prateleiras]
-    classes = _classes_abc(estoque, warehouse.config.abc_percentuais)
-    ordem_classe = Dict(:A => 1, :B => 2, :C => 3)
-    itens_ordenados = sort(
-        collect(estoque);
-        by=item -> (ordem_classe[classes[item.id]], -item.frequencia_pedidos, item.id),
-    )
     for item in itens_ordenados
-        if any(
-            alocado -> alocado.id == item.id,
-            Iterators.flatten(estante.itens for estante in prateleiras),
-        )
+        item.quantidade == 0 && continue
+        if metodo isa MetodoAleatorio
+            _alocar_item_aleatorio!(warehouse, item, prateleiras, warehouse.volumes, metodo.rng)
+        elseif any(
+                alocado -> alocado.id == item.id,
+                Iterators.flatten(estante.itens for estante in prateleiras),
+            )
             _alocar_item_incremental!(warehouse, item, prateleiras, warehouse.volumes)
         else
             _alocar_item!(warehouse, item, prateleiras, warehouse.volumes)

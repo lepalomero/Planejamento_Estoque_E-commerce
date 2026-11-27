@@ -1,11 +1,14 @@
 using Dates
 
-function retirar_dia!(warehouse, mes, dia)
-    # TODO: implementar retirada diária
-end
-
-function executar_ciclo!(warehouse::Warehouse, previsao, config::ConfigEstoque)
-    demanda_mensal = Dict{Date,Dict{String,Float64}}()
+function executar_ciclo!(
+    warehouse::Warehouse,
+    previsao,
+    config::ConfigEstoque;
+    pasta_saida=nothing,
+    metodo::MetodoAlocacao=MetodoABC(),
+    sufixo_metodo="",
+)
+    demanda_semanal = Dict{Date,Dict{String,Float64}}()
     coluna = config.coluna_previsao
 
     for (item, semanas) in previsao
@@ -13,32 +16,34 @@ function executar_ciclo!(warehouse::Warehouse, previsao, config::ConfigEstoque)
             demanda = getproperty(semana, coluna)
             isfinite(demanda) && demanda >= 0 ||
                 throw(ArgumentError("Previsao invalida para o item $(item)"))
-            mes = Date(year(semana.semana), month(semana.semana), 1)
-            por_item = get!(demanda_mensal, mes, Dict{String,Float64}())
+            por_item = get!(demanda_semanal, semana.semana, Dict{String,Float64}())
             por_item[item] = get(por_item, item, 0.0) + demanda
         end
     end
 
-    ordem_classe = Dict(:A => 1, :B => 2, :C => 3)
+    semanas_por_mes = Dict{Date,Vector{Date}}()
+    demanda_mensal = Dict{Date,Dict{String,Int}}()
+    for semana in sort!(collect(keys(demanda_semanal)))
+        mes = Date(year(semana), month(semana), 1)
+        push!(get!(semanas_por_mes, mes, Date[]), semana)
+        por_item = get!(demanda_mensal, mes, Dict{String,Int}())
+        for (item, demanda) in demanda_semanal[semana]
+            por_item[item] = get(por_item, item, 0) + ceil(Int, demanda)
+        end
+    end
+
+    pasta_saida === nothing || mkpath(pasta_saida)
     for mes in sort!(collect(keys(demanda_mensal)))
         demandas = demanda_mensal[mes]
         itens_mes = [
             ProdutoEstoque(
                 item,
-                0,
+                demanda,
                 get(warehouse.volumes, item, nothing),
                 get(warehouse.frequencias_pedidos, item, 0),
-            ) for item in keys(demandas)
+            ) for (item, demanda) in demandas
         ]
-        classes = _classes_abc(itens_mes, config.abc_percentuais)
-        sort!(
-            itens_mes;
-            by=item -> (
-                ordem_classe[classes[item.id]],
-                -item.frequencia_pedidos,
-                item.id,
-            ),
-        )
+        itens_mes = _itens_ordenados(itens_mes, config.abc_percentuais, metodo)
 
         for item in itens_mes
             demanda = demandas[item.id]
@@ -59,16 +64,36 @@ function executar_ciclo!(warehouse::Warehouse, previsao, config::ConfigEstoque)
                 item.frequencia_pedidos,
             )
             try
-                alocar!(warehouse, [reposicao], MetodoABC())
+                alocar!(warehouse, [reposicao], metodo)
             catch erro
                 erro isa ArgumentError || rethrow()
                 @warn "Reposicao nao coube no Warehouse" mes=mes item=item.id erro=erro
             end
         end
 
-        # adicionar a alocação aqui !!!!!!!!!!!
-        for dia in 1:day(lastdayofmonth(mes))
-            retirar_dia!(warehouse, mes, dia)
+        for semana in semanas_por_mes[mes]
+            demandas_semana = Dict(
+                item => ceil(Int, demanda)
+                for (item, demanda) in demanda_semanal[semana]
+            )
+            executar_picking_wave!(
+                warehouse,
+                semana,
+                demandas_semana,
+                pasta_saida;
+                sufixo_metodo=sufixo_metodo,
+            )
+        end
+
+        if pasta_saida !== nothing
+            sufixo = Dates.format(mes, dateformat"yyyy-mm")
+            salvar_estoque(
+                joinpath(
+                    pasta_saida,
+                    _sufixar_arquivo("estoque_mensal_$(sufixo).csv", sufixo_metodo),
+                ),
+                warehouse,
+            )
         end
     end
     return warehouse

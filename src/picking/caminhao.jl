@@ -5,6 +5,17 @@ struct caminhao
     lista_produtos::Vector{String}
 end
 
+function caminhao(config::ConfigEstoque)
+    capacidade_volume = config.capacidade_volume_caminhao
+    capacidade_quantidade = config.capacidade_quantidade_caminhao
+    if capacidade_volume === nothing || capacidade_quantidade === nothing
+        throw(ArgumentError(
+            "Configure capacidade_volume_caminhao e capacidade_quantidade_caminhao",
+        ))
+    end
+    return caminhao(capacidade_volume, capacidade_quantidade, Int[], String[])
+end
+
 using Dates
 
 function agrupar_por_dia_categoria(previsao_pedidos, informacoes_produto)
@@ -39,7 +50,7 @@ function agrupar_por_dia_categoria(previsao_pedidos, informacoes_produto)
 end
 
 
-function alocar_caminhao(armazem::armazem, previsao_pedidos::Vector,
+function alocar_caminhao(armazem, previsao_pedidos::Vector,
                          informacoes_produto, modelo::caminhao)
 
     por_dia = agrupar_por_dia_categoria(previsao_pedidos, informacoes_produto)
@@ -101,5 +112,14 @@ function alocar_caminhao(armazem::armazem, previsao_pedidos::Vector,
 
     n_caminhoes = length(produtos_por_caminhao)
     return n_caminhoes, produtos_por_caminhao, caminhoes_por_dia
+end
+
+function alocar_caminhao(armazem, previsao_pedidos::Vector, informacoes_produto, config::ConfigEstoque)
+    return alocar_caminhao(
+        armazem,
+        previsao_pedidos,
+        informacoes_produto,
+        caminhao(config),
+    )
 end
 

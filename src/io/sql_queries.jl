@@ -17,7 +17,7 @@ function register_csv(connection, archive_dir, filename, table_name)
     )
 end
 
-function run_queries()
+function run_queries(config::ConfigEstoque=ConfigEstoque())
     project_dir = dirname(dirname(@__DIR__))
     archive_dir = joinpath(project_dir, "archive")
     output_dir = joinpath(project_dir, "outputs")
@@ -63,7 +63,7 @@ function run_queries()
             corte AS (
                 SELECT MIN(itens_acumulados) AS limite_acumulado
                 FROM ranked
-                WHERE itens_acumulados >= total_itens * 0.8
+                WHERE itens_acumulados >= total_itens * $(config.cobertura_categorias)
             )
             SELECT r.categoria
             FROM ranked AS r

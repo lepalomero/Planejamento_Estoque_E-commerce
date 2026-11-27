@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" role="img">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="90" y="34" font-family="Arial,sans-serif" font-size="24" font-weight="bold" fill="#172554">Distancia diaria por metodo</text>
+<line x1="90" y1="66" x2="118" y2="66" stroke="#7c3aed" stroke-width="3.5"/>
+<text x="126" y="70" font-family="Arial,sans-serif" font-size="13" fill="#334155">ABC SKU</text>
+<line x1="310" y1="66" x2="338" y2="66" stroke="#ea580c" stroke-width="3.5"/>
+<text x="346" y="70" font-family="Arial,sans-serif" font-size="13" fill="#334155">Aleatorio</text>
+<line x1="530" y1="66" x2="558" y2="66" stroke="#0f766e" stroke-width="3.5"/>
+<text x="566" y="70" font-family="Arial,sans-serif" font-size="13" fill="#334155">Coocorrencia</text>
+<line x1="90" y1="405.0" x2="925" y2="405.0" stroke="#cbd5e1" stroke-width="1"/>
+<text x="80" y="409.0" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#475569">0.0</text>
+<line x1="90" y1="344.0" x2="925" y2="344.0" stroke="#cbd5e1" stroke-width="1"/>
+<text x="80" y="348.0" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#475569">3503.3</text>
+<line x1="90" y1="283.0" x2="925" y2="283.0" stroke="#cbd5e1" stroke-width="1"/>
+<text x="80" y="287.0" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#475569">7006.6</text>
+<line x1="90" y1="222.0" x2="925" y2="222.0" stroke="#cbd5e1" stroke-width="1"/>
+<text x="80" y="226.0" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#475569">10509.9</text>
+<line x1="90" y1="161.0" x2="925" y2="161.0" stroke="#cbd5e1" stroke-width="1"/>
+<text x="80" y="165.0" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#475569">14013.2</text>
+<line x1="90" y1="100.0" x2="925" y2="100.0" stroke="#cbd5e1" stroke-width="1"/>
+<text x="80" y="104.0" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#475569">17516.5</text>
+<line x1="90" y1="100" x2="90" y2="405" stroke="#334155" stroke-width="1.5"/>
+<line x1="90" y1="405" x2="925" y2="405" stroke="#334155" stroke-width="1.5"/>
+<polyline points="90.0,223.56555982581014 165.9090909090909,219.54335678548023 241.8181818181818,218.9687563511474 317.72727272727275,211.30741722670942 393.6363636363636,209.94927074555906 469.54545454545456,209.39208244559993 545.4545454545455,204.48186055221015 621.3636363636364,201.99192533676782 697.2727272727273,201.55662197742475 773.1818181818181,197.62147960896343 849.0909090909091,196.7508728902773 925.0,188.8980002877284" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="90.0" cy="223.56555982581014" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-08-27 - 10420.0</title></circle>
+<circle cx="165.9090909090909" cy="219.54335678548023" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-09-03 - 10651.0</title></circle>
+<circle cx="241.8181818181818" cy="218.9687563511474" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-09-10 - 10684.0</title></circle>
+<circle cx="317.72727272727275" cy="211.30741722670942" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-09-17 - 11124.0</title></circle>
+<circle cx="393.6363636363636" cy="209.94927074555906" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-09-24 - 11202.0</title></circle>
+<circle cx="469.54545454545456" cy="209.39208244559993" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-10-01 - 11234.0</title></circle>
+<circle cx="545.4545454545455" cy="204.48186055221015" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-10-08 - 11516.0</title></circle>
+<circle cx="621.3636363636364" cy="201.99192533676782" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-10-15 - 11659.0</title></circle>
+<circle cx="697.2727272727273" cy="201.55662197742475" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-10-22 - 11684.0</title></circle>
+<circle cx="773.1818181818181" cy="197.62147960896343" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-10-29 - 11910.0</title></circle>
+<circle cx="849.0909090909091" cy="196.7508728902773" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-11-05 - 11960.0</title></circle>
+<circle cx="925.0" cy="188.8980002877284" r="4.5" fill="#7c3aed"><title>ABC SKU: 2018-11-12 - 12411.0</title></circle>
+<polyline points="90.0,167.81190556115027 165.9090909090909,164.93890338948606 241.8181818181818,162.22261042718532 317.72727272727275,155.71047217141304 393.6363636363636,158.25264378997656 469.54545454545456,148.5192606750656 545.4545454545455,147.00440498455174 621.3636363636364,142.1290073599094 697.2727272727273,140.57932740064808 773.1818181818181,131.89067234816048 849.0909090909091,122.85377460819842 925.0,122.59259259259261" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="90.0" cy="167.81190556115027" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-08-27 - 13622.0</title></circle>
+<circle cx="165.9090909090909" cy="164.93890338948606" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-09-03 - 13787.0</title></circle>
+<circle cx="241.8181818181818" cy="162.22261042718532" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-09-10 - 13943.0</title></circle>
+<circle cx="317.72727272727275" cy="155.71047217141304" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-09-17 - 14317.0</title></circle>
+<circle cx="393.6363636363636" cy="158.25264378997656" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-09-24 - 14171.0</title></circle>
+<circle cx="469.54545454545456" cy="148.5192606750656" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-10-01 - 14730.0</title></circle>
+<circle cx="545.4545454545455" cy="147.00440498455174" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-10-08 - 14817.0</title></circle>
+<circle cx="621.3636363636364" cy="142.1290073599094" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-10-15 - 15097.0</title></circle>
+<circle cx="697.2727272727273" cy="140.57932740064808" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-10-22 - 15186.0</title></circle>
+<circle cx="773.1818181818181" cy="131.89067234816048" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-10-29 - 15685.0</title></circle>
+<circle cx="849.0909090909091" cy="122.85377460819842" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-11-05 - 16204.0</title></circle>
+<circle cx="925.0" cy="122.59259259259261" r="4.5" fill="#ea580c"><title>Aleatorio: 2018-11-12 - 16219.0</title></circle>
+<polyline points="90.0,236.9729032935766 165.9090909090909,231.01795333776343 241.8181818181818,232.58504543139847 317.72727272727275,226.50821053496927 393.6363636363636,224.26204520075905 469.54545454545456,222.01587986654883 545.4545454545455,216.356936195089 621.3636363636364,213.1356913359503 697.2727272727273,211.35965362983058 773.1818181818181,208.73042133939848 849.0909090909091,203.8201994460087 925.0,203.94208438662474" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="90.0" cy="236.9729032935766" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-08-27 - 9650.0</title></circle>
+<circle cx="165.9090909090909" cy="231.01795333776343" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-09-03 - 9992.0</title></circle>
+<circle cx="241.8181818181818" cy="232.58504543139847" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-09-10 - 9902.0</title></circle>
+<circle cx="317.72727272727275" cy="226.50821053496927" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-09-17 - 10251.0</title></circle>
+<circle cx="393.6363636363636" cy="224.26204520075905" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-09-24 - 10380.0</title></circle>
+<circle cx="469.54545454545456" cy="222.01587986654883" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-10-01 - 10509.0</title></circle>
+<circle cx="545.4545454545455" cy="216.356936195089" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-10-08 - 10834.0</title></circle>
+<circle cx="621.3636363636364" cy="213.1356913359503" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-10-15 - 11019.0</title></circle>
+<circle cx="697.2727272727273" cy="211.35965362983058" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-10-22 - 11121.0</title></circle>
+<circle cx="773.1818181818181" cy="208.73042133939848" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-10-29 - 11272.0</title></circle>
+<circle cx="849.0909090909091" cy="203.8201994460087" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-11-05 - 11554.0</title></circle>
+<circle cx="925.0" cy="203.94208438662474" r="4.5" fill="#0f766e"><title>Coocorrencia: 2018-11-12 - 11547.0</title></circle>
+<text x="90.0" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-08-27</text>
+<text x="165.9090909090909" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-09-03</text>
+<text x="241.8181818181818" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-09-10</text>
+<text x="317.72727272727275" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-09-17</text>
+<text x="393.6363636363636" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-09-24</text>
+<text x="469.54545454545456" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-10-01</text>
+<text x="545.4545454545455" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-10-08</text>
+<text x="621.3636363636364" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-10-15</text>
+<text x="697.2727272727273" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-10-22</text>
+<text x="773.1818181818181" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-10-29</text>
+<text x="849.0909090909091" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-11-05</text>
+<text x="925.0" y="427" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#475569">2018-11-12</text>
+<text x="90" y="488" font-family="Arial,sans-serif" font-size="12" fill="#475569">Data de cada wave; distancia total somada entre todos os caminhoes.</text>
+</svg>

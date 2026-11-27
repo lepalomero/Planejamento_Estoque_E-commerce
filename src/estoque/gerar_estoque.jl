@@ -52,9 +52,11 @@ function _dados_produtos(produtos)
     return resultado
 end
 
-function _escolher_extra(rng, candidatos, frequencias, quantidades)
+function _escolher_extra(rng, candidatos, frequencias, quantidades, config::ConfigEstoque)
     logpesos = [
-        log(frequencias[id]) - 0.5 * log(quantidades[id] + 1) + 0.25 * randn(rng)
+        log(frequencias[id]) -
+        config.penalidade_quantidade_extra * log(quantidades[id] + 1) +
+        config.variacao_aleatoria_extra * randn(rng)
         for id in candidatos
     ]
     maximo = maximum(logpesos)
@@ -75,7 +77,7 @@ function gerar_estoque(pedidos, produtos, config::ConfigEstoque)
 
     datas = [_data_pedido(_valor_linha(pedido, :data_do_pedido)) for pedido in pedidos]
     data_final = maximum(datas)
-    data_inicial = data_final - Day(30)
+    data_inicial = data_final - Day(config.janela_historico_dias)
     quantidades = Dict(id => 0 for id in keys(dados_produtos))
     frequencias = Dict(id => 0 for id in keys(dados_produtos))
 
@@ -101,8 +103,9 @@ function gerar_estoque(pedidos, produtos, config::ConfigEstoque)
 
     if isinf(config.capacidade_prateleira)
         capacidade_itens = config.n_estantes * config.variedade_por_estante
-        length(ids) <= capacidade_itens || begin
-            @warn "Capacidade de variedade insuficiente para armazenar todos os IDs." ids=length(ids) capacidade=capacidade_itens
+        ids_com_estoque = count(id -> quantidades[id] > 0, ids)
+        ids_com_estoque <= capacidade_itens || begin
+            @warn "Capacidade de variedade insuficiente para armazenar todos os itens com estoque." ids=ids_com_estoque capacidade=capacidade_itens
             throw(ArgumentError("Numero de IDs distintos excede a capacidade de variedade"))
         end
     else
@@ -138,7 +141,13 @@ function gerar_estoque(pedidos, produtos, config::ConfigEstoque)
                     throw(ArgumentError("Nao foi possivel atingir a ocupacao minima sem exceder a maxima"))
                 end
 
-                escolhido = _escolher_extra(rng, candidatos, frequencias, quantidades)
+                escolhido = _escolher_extra(
+                    rng,
+                    candidatos,
+                    frequencias,
+                    quantidades,
+                    config,
+                )
                 unidades_necessarias =
                     max(1, ceil(Int, (alvo - volume_atual) / volumes[escolhido]))
                 unidades_permitidas =

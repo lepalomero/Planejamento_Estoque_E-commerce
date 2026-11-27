@@ -18,7 +18,7 @@ function carregar_dados_estoque(caminho_pedidos, caminho_produtos)
         produtos_result = DuckDB.DBInterface.execute(
             connection,
             """
-            SELECT id, altura, largura, espessura
+            SELECT id, categoria, altura, largura, espessura
             FROM read_csv_auto('$(produtos_path)')
             """,
         )
@@ -31,8 +31,8 @@ function carregar_dados_estoque(caminho_pedidos, caminho_produtos)
         ]
         produtos = [
             (
-                categoria=row.categoria,
                 id=row.id,
+                categoria=row.categoria,
                 altura=row.altura,
                 largura=row.largura,
                 espessura=row.espessura,
